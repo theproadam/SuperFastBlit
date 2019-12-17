@@ -1,7 +1,7 @@
 # SuperFastBlit
 This demo demonstrates the ability to display an ARGB buffer to the screen within 1ms.
 
-SetDIBitsToDevice() can blit a 1080p buffer onto the form at a speed of ~1.2ms. The source buffer must be 32 bits per pixel, otherwise the opertaion will take ~11ms.
+SetDIBitsToDevice() can blit a 1080p buffer onto the form at a speed of ~1.2ms. The source buffer must be 32 bits per pixel, otherwise the operation will take ~11ms.
 
 ## Here's some simple demonstration code:
 ```c#
