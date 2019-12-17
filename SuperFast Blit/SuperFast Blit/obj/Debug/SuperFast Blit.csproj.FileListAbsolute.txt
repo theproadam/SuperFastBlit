@@ -1,0 +1,9 @@
+c:\users\adam\documents\visual studio 2013\Projects\SuperFast Blit\SuperFast Blit\bin\Debug\SuperFast Blit.exe.config
+c:\users\adam\documents\visual studio 2013\Projects\SuperFast Blit\SuperFast Blit\bin\Debug\SuperFast Blit.exe
+c:\users\adam\documents\visual studio 2013\Projects\SuperFast Blit\SuperFast Blit\bin\Debug\SuperFast Blit.pdb
+c:\users\adam\documents\visual studio 2013\Projects\SuperFast Blit\SuperFast Blit\obj\Debug\SuperFast Blit.csprojResolveAssemblyReference.cache
+c:\users\adam\documents\visual studio 2013\Projects\SuperFast Blit\SuperFast Blit\obj\Debug\SuperFast_Blit.Form1.resources
+c:\users\adam\documents\visual studio 2013\Projects\SuperFast Blit\SuperFast Blit\obj\Debug\SuperFast_Blit.Properties.Resources.resources
+c:\users\adam\documents\visual studio 2013\Projects\SuperFast Blit\SuperFast Blit\obj\Debug\SuperFast Blit.csproj.GenerateResource.Cache
+c:\users\adam\documents\visual studio 2013\Projects\SuperFast Blit\SuperFast Blit\obj\Debug\SuperFast Blit.exe
+c:\users\adam\documents\visual studio 2013\Projects\SuperFast Blit\SuperFast Blit\obj\Debug\SuperFast Blit.pdb
