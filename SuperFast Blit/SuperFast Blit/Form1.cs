@@ -63,6 +63,9 @@ namespace SuperFast_Blit
            dwWidth, uint dwHeight, int XSrc, int YSrc, uint uStartScan, uint cScanLines,
            IntPtr lpvBits, [In] ref BITMAPINFO lpbmi, uint fuColorUse);
 
+        [DllImport("msvcrt.dll", EntryPoint = "memset", CallingConvention = CallingConvention.Cdecl, SetLastError = false)]
+        public static extern IntPtr MemSet(IntPtr dest, int c, int byteCount);
+
         #endregion
 
         private unsafe void buttonSetBg_Click(object sender, EventArgs e)
@@ -95,20 +98,22 @@ namespace SuperFast_Blit
                     if (height > targetHeight)
                         th = targetHeight;
 
-                    byte* bptr = (byte*)ptrClearIMG;
-                    byte* sptr = (byte*)resultData.Scan0;
                     lock (safetyLock)
-                    for (int i = 0; i < th; i++)
-                        for (int w = 0; w < tw; w++)
-                        {
-                            bptr[w * 4 + i * targetWidth * 4] = sptr[w * mb + (height - i - 1) * width * mb];
-                            bptr[w * 4 + i * targetWidth * 4 + 1] = sptr[w * mb + (height - i - 1) * width * mb + 1];
-                            bptr[w * 4 + i * targetWidth * 4 + 2] = sptr[w * mb + (height - i - 1) * width * mb + 2];
+                    {
+                        byte* bptr = (byte*)ptrClearIMG;
+                        byte* sptr = (byte*)resultData.Scan0;
 
-                            if (mb == 4)
-                                bptr[w * 4 + i * targetWidth * 4 + 3] = sptr[w * mb + (height - i - 1) * width * mb + 3];
-                        }
+                        for (int i = 0; i < th; i++)
+                            for (int w = 0; w < tw; w++)
+                            {
+                                bptr[w * 4 + i * targetWidth * 4] = sptr[w * mb + (height - i - 1) * width * mb];
+                                bptr[w * 4 + i * targetWidth * 4 + 1] = sptr[w * mb + (height - i - 1) * width * mb + 1];
+                                bptr[w * 4 + i * targetWidth * 4 + 2] = sptr[w * mb + (height - i - 1) * width * mb + 2];
 
+                                if (mb == 4)
+                                    bptr[w * 4 + i * targetWidth * 4 + 3] = sptr[w * mb + (height - i - 1) * width * mb + 3];
+                            }
+                    }
                     bmp.UnlockBits(resultData);
                     bmp.Dispose();
                     BGLoaded = true;
@@ -191,7 +196,8 @@ namespace SuperFast_Blit
             lock (safetyLock){
                 //1. Clear The Working Byte Array With The BG Image or a Blank PreComputed Array
                 memcpy((IntPtr)ptrWorkIMG, ptrClearIMG, (UIntPtr)(targetWidth * targetHeight * 4));
-              
+              //  MemSet((IntPtr)ptrWorkIMG, 40, (targetWidth * targetHeight * 4));
+
                 //2. Calculate The Physics and Draw The Object
                 Parallel.For(0, ObjectArray.Length, i =>{
                     //  for (int i = 0; i < ObjectArray.Length; i++)
@@ -513,6 +519,7 @@ namespace SuperFast_Blit
         Thread T;
         bool DontStop = true;
         double TickRate;
+        double NextTimeToFire = 0;
 
         public RenderThread(float TargetFrameTime)
         {
@@ -529,14 +536,11 @@ namespace SuperFast_Blit
 
         public void SetTickRate(float TickRateInMs)
         {
-            if (TickRate == float.NaN | TickRate == float.NegativeInfinity | TickRate == float.PositiveInfinity | TickRate == float.MaxValue | TickRate == float.MinValue)
-            {
-                return;
-            }
-
+        //    if (TickRate == float.NaN | TickRate == float.NegativeInfinity | TickRate == float.PositiveInfinity | TickRate == float.MaxValue | TickRate == float.MinValue)
+        //    {return;}
             
-
             TickRate = TickRateInMs;
+            NextTimeToFire = 0;
         }
 
         public void Start()
@@ -559,8 +563,7 @@ namespace SuperFast_Blit
         void RenderCode()
         {
             Stopwatch sw = new Stopwatch();
-            double NextTimeToFire = 0;
-
+            
             sw.Start();
             while (DontStop)
             {
