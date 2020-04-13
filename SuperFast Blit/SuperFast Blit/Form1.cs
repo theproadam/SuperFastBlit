@@ -14,7 +14,7 @@ using System.Diagnostics;
 
 namespace SuperFast_Blit
 {
-    public partial class Form1 : Form
+    public unsafe partial class Form1 : Form
     {
         public Form1()
         {
@@ -25,6 +25,9 @@ namespace SuperFast_Blit
 
         IntPtr ptrClearIMG;
         IntPtr ptrWorkIMG;
+
+        int* iptrWork;
+        int IntegerColorValue;
 
         int targetWidth = 1920;
         int targetHeight = 1080;
@@ -194,9 +197,11 @@ namespace SuperFast_Blit
 
             //Thread Lock, To Prevent Updating The Resolution / Physics While The Program Renders The Next Frame
             lock (safetyLock){
-                //1. Clear The Working Byte Array With The BG Image or a Blank PreComputed Array
-                memcpy((IntPtr)ptrWorkIMG, ptrClearIMG, (UIntPtr)(targetWidth * targetHeight * 4));
-              //  MemSet((IntPtr)ptrWorkIMG, 40, (targetWidth * targetHeight * 4));
+                //1. Clear The Working Byte Array With The BG Image or a high speed parallel bitwise operation
+                if (!BGLoaded)
+                    QuickBGClear(selectedBGColor.R, selectedBGColor.G, selectedBGColor.B);
+                else memcpy((IntPtr)ptrWorkIMG, ptrClearIMG, (UIntPtr)(targetWidth * targetHeight * 4));
+
 
                 //2. Calculate The Physics and Draw The Object
                 Parallel.For(0, ObjectArray.Length, i =>{
@@ -231,15 +236,15 @@ namespace SuperFast_Blit
                         ObjectArray[i].positionX = targetWidth - 129;
                     }
 
+                  
+                    int* iptr = (int*)ptrWorkIMG;
+                    int c = ((((((byte)0 << 8) | ObjectArray[i].color.R) << 8) | ObjectArray[i].color.G) << 8) | ObjectArray[i].color.B; //ARGB Values
 
-                    byte* bptr = (byte*)ptrWorkIMG;
                     for (int w = -128; w < 128; w++)
                     {
                         for (int h = -128; h < 128; h++)
                         {
-                            bptr[(w + (int)ObjectArray[i].positionX) * 4 + targetWidth * (h + (int)ObjectArray[i].positionY) * 4] = ObjectArray[i].color.B;
-                            bptr[(w + (int)ObjectArray[i].positionX) * 4 + targetWidth * (h + (int)ObjectArray[i].positionY) * 4 + 1] = ObjectArray[i].color.G;
-                            bptr[(w + (int)ObjectArray[i].positionX) * 4 + targetWidth * (h + (int)ObjectArray[i].positionY) * 4 + 2] = ObjectArray[i].color.R;
+                            iptr[(w + (int)ObjectArray[i].positionX) + targetWidth * (h + (int)ObjectArray[i].positionY)] = c;
                         }
                     }
                 });
@@ -248,9 +253,34 @@ namespace SuperFast_Blit
                 SetDIBitsToDevice(TargetDC, 0, 0, (uint)targetWidth, (uint)targetHeight, 0, 0, 0, (uint)targetHeight, ptrWorkIMG, ref BINFO, 0);
             }
 
-            
+
+           // this.Invoke((Action)delegate() { this.Text = PhysicsMultiplier + "delta ms"; });
 
             FramesRendered++;
+        }
+
+        unsafe void FastBackgroundClear(IntPtr TargetData, IntPtr SourceData, int RW, int RH, int Stride)
+        {
+            Parallel.For(0, RH, i =>
+            {
+                memcpy(IntPtr.Add(TargetData, i * RW * Stride), IntPtr.Add(SourceData, i * RW * Stride), (UIntPtr)(RW * Stride));
+              //  MemSet(IntPtr.Add(TargetData, i * RW * Stride), (int)((float)(255f / RH) * i), (RW * Stride));
+            });
+        }
+
+        unsafe void QuickBGClear(byte R, byte G, byte B)
+        {
+            IntegerColorValue = ((((((byte)0 << 8) | (byte)R) << 8) | (byte)G) << 8) | (byte)B; //ARGB Values
+            iptrWork = (int*)ptrWorkIMG;
+            Parallel.For(0, targetHeight, internalClearFunction);
+        }
+
+        unsafe void internalClearFunction(int index)
+        {
+            for (int i = 0; i < targetWidth; ++i)
+            {
+                iptrWork[index * targetWidth + i] = IntegerColorValue;
+            }
         }
 
         unsafe void UpdateResolution(int w, int h)
