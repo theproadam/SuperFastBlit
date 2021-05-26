@@ -86,6 +86,12 @@ namespace SuperFast_Blit
                             "Source Image Is " + bpp + "bpp", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
 
+                    if (bpp != 32 | bpp != 24)
+                    {
+                        MessageBox.Show("Only 24bpp OR 32bpp images supported!", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
                     int width = bmp.Width;
                     int height = bmp.Height;
 
@@ -378,6 +384,8 @@ namespace SuperFast_Blit
                 buttonRender.Text = "Start Rendering";
                 RT.Stop();
                 RTEnabled = false;
+                physicsLock.Stop();
+                physicsLock.Reset();
             }
             else
             {
@@ -425,7 +433,8 @@ namespace SuperFast_Blit
 
                 for (int i = 0; i < ObjectArray.Length; i++)
                 {
-                    listBox1.Items.Add(i + ": R: " + col.R + ", G: " + col.G + ", B:" + col.B);
+                    Color col1 = ObjectArray[i].color;
+                    listBox1.Items.Add(i + ": R: " + col1.R + ", G: " + col1.G + ", B:" + col1.B);
                 }
             }
             
@@ -593,7 +602,10 @@ namespace SuperFast_Blit
         void RenderCode()
         {
             Stopwatch sw = new Stopwatch();
-            
+
+            NextTimeToFire = 0;
+
+            sw.Reset();
             sw.Start();
             while (DontStop)
             {
@@ -603,6 +615,7 @@ namespace SuperFast_Blit
                     RenderFrame();
                 }
             }
+            sw.Stop();
         }
     }
 
