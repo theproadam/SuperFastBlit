@@ -384,6 +384,8 @@ namespace SuperFast_Blit
                 buttonRender.Text = "Start Rendering";
                 RT.Stop();
                 RTEnabled = false;
+
+                //reset physics to prevent jumping
                 physicsLock.Stop();
                 physicsLock.Reset();
             }
